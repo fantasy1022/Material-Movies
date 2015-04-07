@@ -1,73 +1,54 @@
 package com.hackvg.android.test.views.activity;
 
-import android.support.test.espresso.Espresso;
-import android.support.test.espresso.action.ViewActions;
-import android.support.test.espresso.contrib.RecyclerViewActions;
 import android.test.ActivityInstrumentationTestCase2;
 
-import com.hackvg.android.R;
+import com.hackvg.android.views.activities.MovieDetailActivity;
 import com.hackvg.android.views.activities.MoviesActivity;
-
-import static android.support.test.espresso.assertion.ViewAssertions.matches;
-import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
-import static android.support.test.espresso.matcher.ViewMatchers.withId;
-import static org.hamcrest.Matchers.not;
+import com.robotium.solo.Solo;
+import com.squareup.spoon.Spoon;
 
 /**
  * Created by saulmm on 17/02/15.
  */
 public class MoviesActivityTest extends ActivityInstrumentationTestCase2<MoviesActivity> {
 
-    private MoviesActivity mMoviesActivity;
+    private Solo solo;
 
     public MoviesActivityTest() {
-
         super(MoviesActivity.class);
     }
 
     @Override
     protected void setUp() throws Exception {
-
-        super.setUp();
-
-        // For each test method invocation, the Activity will not actually be created
-        // until the first time this method is called.
-        mMoviesActivity = getActivity();
+        solo = new Solo(getInstrumentation(), getActivity());
     }
 
     @Override
     protected void tearDown() throws Exception {
-
-        super.tearDown();
+        solo.finishOpenedActivities();
     }
 
-    public void testContainsLoadingIndicator () {
+    public void testMainActivityOpen() throws Exception {
 
-        Espresso.onView(withId(R.id.activity_movies_progress))
-            .check(matches(isDisplayed()));
+        solo.waitForActivity(MoviesActivity.class);//Default timeout is 20s.
+        solo.sleep(5000);
+
+        getInstrumentation().waitForIdleSync();
+        Spoon.screenshot(solo.getCurrentActivity(), "MoviesActivity");
     }
 
-    public void testRecyclerViewIsShown () throws InterruptedException {
+    public void testDetialActivityOpen() throws Exception {
 
-        // Work around, it would be better use Espresso Idling resources
-        Thread.sleep(1000);
+        solo.waitForActivity(MoviesActivity.class);
+        solo.sleep(5000);
 
-        Espresso.onView(withId(R.id.recycler_popular_movies))
-            .check(matches(isDisplayed()));
+        solo.clickOnText("Furious 7");
+        solo.waitForActivity(MovieDetailActivity.class);
+        solo.sleep(2000);
 
-        Espresso.onView(withId(R.id.activity_movies_progress))
-            .check(matches(not(isDisplayed())));
+        getInstrumentation().waitForIdleSync();
+        Spoon.screenshot(solo.getCurrentActivity(), "MovieDetailActivity");
+        solo.assertCurrentActivity("This is not MovieDetailActivity", MovieDetailActivity.class);
     }
 
-    public void testDetailActivityOpen () throws InterruptedException {
-
-        // Work around, it would be better use Espresso Idling resources
-        Thread.sleep(1000);
-
-        Espresso.onView(withId(R.id.recycler_popular_movies)).perform(
-            RecyclerViewActions.actionOnItemAtPosition(2, ViewActions.click()));
-
-        Espresso.onView(withId(R.id.activity_movie_detail_scroll))
-            .check(matches(isDisplayed()));
-    }
 }
